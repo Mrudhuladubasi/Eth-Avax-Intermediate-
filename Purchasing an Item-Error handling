@@ -45,7 +45,10 @@ contract PurchaseItem {
         require(msg.sender == seller, "Owner shall withdraw amount");
 
         uint256 bal = address(this).balance;
-        require(bal > wamt, "Insufficient Balance");
+        if(bal > wamt)
+        {
+            revert("Insufficient Balance");
+        }
 
         (bool Bill, ) = payable(seller).call{value: wamt}("Amount Withdrew");
         require(Bill, "Withdrawal failed");
