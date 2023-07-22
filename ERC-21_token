@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.13;
+
+contract ERC_20_Token
+{
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totSupply;
+    address public owner;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Mint(address indexed to, uint256 value);
+    event Burn(address indexed from, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    modifier Owner() {
+        require(msg.sender == owner, "Access restricted only to Owner");
+        _;
+    }
+
+    function mintTokens(address To_addr, uint256 amt) public
+    {
+        require(To_addr != address(0), "Enter a valid receivers address");
+        totSupply += amt;
+        balanceOf[To_addr] += amt;
+        emit Mint(To_addr, amt);
+    }
+
+    function burnTokens(uint256 amt) public
+    {
+        require(balanceOf[msg.sender] >= amt, "Insufficient account balance");
+        balanceOf[msg.sender] -= amt;
+        totSupply -= amt;
+        emit Burn(msg.sender, amt);
+    }
+
+    function transferTokens(address To_addr, uint256 amt) public
+    {
+        require(To_addr != address(0), "Enter a valid receivers address");
+        require(balanceOf[msg.sender] >= amt, "Insufficient account balance");
+        balanceOf[msg.sender] -= amt;
+        balanceOf[To_addr] += amt;
+        emit Transfer(msg.sender, To_addr, amt);
+    }
+
+    function approveMinting(address Token_spender, uint256 amt) public
+    {
+        require(Token_spender != address(0), "Enter a valid spender's address");
+        allowance[msg.sender][Token_spender] = amt;
+        emit Approval(msg.sender, Token_spender, amt);
+    }
+
+    function transferFrom(address From_addr, address To_addr, uint256 amt) public
+    {
+        require(From_addr != address(0) && To_addr != address(0), "Enter a valid spender's addresses");
+        require(balanceOf[From_addr] >= amt, "Insufficient account balance");
+        require(allowance[From_addr][msg.sender] >= amt, "Allowance exceeded");
+        balanceOf[From_addr] -= amt;
+        balanceOf[To_addr] += amt;
+        allowance[From_addr][msg.sender] -= amt;
+        emit Transfer(From_addr, To_addr, amt);
+    }
+}
